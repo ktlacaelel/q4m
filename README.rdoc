@@ -1,9 +1,51 @@
 = q4m
 
-Description goes here.
+Interface to pragmatically setup a queue job for Q4M!
+
+= Installation
+
+    kazu@utopia:~$ gem install q4m
+
+= Usage
+
+    require 'rubygems'
+    require 'q4m'
+
+    class ShellJob < Q4m::Queue::Job
+
+      # *job* is a mysql record that is retrived from *table_name*
+      def execute job
+        # let the log know if the job was executed correctly!
+        job = job.first
+        return @log.info("Executed: #{job.inspect}") if system job
+
+        # If failed then log the job that failed and rollback the job so
+        # it stays in the queue!
+        @log.error "Aborted job: #{job.inspect}"
+        queue_abort
+      end
+
+      # Database q4m table (name) where jobs are stored
+      def table_name
+        'my_queue'
+      end
+
+    end
+
+    host = 'localhost'
+    user = 'root'
+    pass = 'secret'
+    database = 'my_db'
+
+    mysql = Mysql.new host, user, pass, database
+    job = ShellJob.new mysql, Logger.new('q4m.log')
+
+    job.run
+
+
 
 == Note on Patches/Pull Requests
- 
+
 * Fork the project.
 * Make your feature addition or bug fix.
 * Add tests for it. This is important so I don't break it in a
