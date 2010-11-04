@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "q4m"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.summary = %Q{Queue job for the Q4M MySQL engine}
+    gem.description = %Q{Interface to pragmatically setup a queue job for Q4M!}
     gem.email = "kazu.dev@gmail.com"
     gem.homepage = "http://github.com/ktlacaelel/q4m"
     gem.authors = ["kazuyoshi tlacaelel"]
