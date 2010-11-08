@@ -111,7 +111,7 @@ module Q4m
       # that they pull out jobs from by overriding.
       #
       def table_name
-        self.class.gsub(/([A-Z])/, '_\1').gsub(/^_/, '').downcase + 's'
+        self.class.name.gsub(/([A-Z])/, '_\1').gsub(/^_/, '').downcase + 's'
       end
 
       # Job execution.
