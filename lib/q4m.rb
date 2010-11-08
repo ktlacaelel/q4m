@@ -27,6 +27,7 @@ module Q4m
       def run
         return unless @has_jobs
         queue_wait
+        @log.info("Executing: #{latest_job.inspect}")
         execute latest_job
         queue_end
       end
@@ -100,6 +101,7 @@ module Q4m
       # start serving other workers
       #
       def queue_abort
+        @log.error 'Aborted!'
         @mysql.query 'select queue_abort()'
       end
 
