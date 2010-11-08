@@ -107,13 +107,11 @@ module Q4m
 
       # Job table name.
       #
-      # This method is here so child classes should define the tablename
-      # that they pull out jobs from!
-      #
-      # TODO: resolve tablename by underscoring child-class name.
+      # This method is here so child classes can define the tablename
+      # that they pull out jobs from by overriding.
       #
       def table_name
-        raise 'Must implement in a child class!'
+        self.class.gsub(/([A-Z])/, '_\1').gsub(/^_/, '').downcase + 's'
       end
 
       # Job execution.
