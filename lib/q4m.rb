@@ -43,7 +43,6 @@ module Q4m
         @mysql.query("select count(*) from #{table_name}").each do |queue|
           if queue == ['0']
             @has_jobs = false
-            @log.warn 'No job in queue'
           end
         end
       end
