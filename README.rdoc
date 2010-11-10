@@ -219,6 +219,8 @@ But let's keep it flexibe so let's run two kinds of jobs, :ruby & :shell
 
     # With the code above you can do something like this!
 
+    $ touch /tmp/run_queue.txt
+
     # Run the deamon in a ruby console!
     >> Background::Deamon.run
 
