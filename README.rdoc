@@ -4,7 +4,7 @@ Interface to pragmatically setup a queue job for Q4M!
 
 = So... What's Q4M
 
-Q4M is a MySQL open-source Engine. that attempts to take away some
+Q4M is a open-sourced MySQL Engine. that attempts to take away some
 logic from your application by encapsulating it inside of mysql.
 
 The documentation is kinda bad, but the magic that it does in the
