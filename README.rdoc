@@ -254,7 +254,7 @@ Go farther just create a new job class and run whatever you like!
 
 I've installed in this env
 
-    deploy@staging> cat /etc/*-release                                                                                                ~
+    deploy@staging> cat /etc/*-release
     DISTRIB_ID=Ubuntu
     DISTRIB_RELEASE=10.04
     DISTRIB_CODENAME=lucid
