@@ -4,7 +4,7 @@ Interface to pragmatically setup a queue job for Q4M!
 
 = So... What's Q4M
 
-Q4M is a MySQL opens-ource Engine. that attempts to take away some
+Q4M is a MySQL open-source Engine. that attempts to take away some
 logic from your application by encapsulating it inside of mysql.
 
 The documentation is kinda bad, but the magic that it does in the
@@ -54,7 +54,15 @@ Seek & destroy, Seek & destroy!
 
 = So what exactly does this gem do?
 
-Gives you an interface to quickly setup a queue of job!
+Gives you an interface to quickly setup how specificly a job is
+supposed to run!
+
+Basically, you define a class create an method called execute, which
+receives a *job* argument. truly a MySQL record in the form of an
+array, what you do from there is up to you!
+
+if something goes wrong just call the *queue_abort* method and
+everything gets rolled back!
 
 = Installation
 
@@ -106,15 +114,19 @@ override the *table_name* method and specify one of your liking!
 
 = Run on a specific environment like rails?
 
-Planning to have an internal worker
+Would you like to have an entire rails-app as your worker?
 but dont't want to load the whole env with rake tasks everytime?
 
-Wouln't it be sweet if you can let only-one instance of rails running
+That would be sweet right? and you can even reuse/test that code.
+
+No problem!
+
+You can leave only-one instance of rails running
 and tell it to pull jobs from the queue whenever it can?
 
 Yes!!
 
-But let's keep it flexibe and run two kinds of jobs, :ruby & :shell
+But let's keep it flexibe so let's run two kinds of jobs, :ruby & :shell
 
     module Background
 
