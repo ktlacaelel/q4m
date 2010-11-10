@@ -2,32 +2,75 @@
 
 Interface to pragmatically setup a queue job for Q4M!
 
+= So... What's Q4M
+
+Q4M is a MySQL opens-ource Engine. that attempts to take away some
+logic from your application by encapsulating it inside of mysql.
+
+The documentation is kinda bad, but the magic that it does in the
+background is sweeeeeet!
+
+You basically store all of your background jobs inside a MySQL table.
+that table's engine should be a *queue* (q4m) engine!
+
+Exampe:
+
+    drop table if exists shell_jobs, ruby_jobs;
+    create table shell_jobs (command text) engine=queue;
+    create table ruby_jobs (command text) engine=queue;
+
+That engine will work under some kind of transaction. When you connect
+to the database the engine will give you a list of all the pending
+jobs. When you start a transaction you'll receive *ONE* job to work
+with. In the mean time the whole table gets locked..
+And if you do a 'select *' all results will return emtpy!
+
+Don't panic!
+
+This is great, you can never access two jobs at the same time.
+if another worker/machine connects they'll get a list of jobs except
+the one is wrapped in the transaction!
+
+So that means that the locking only happens on the connection that is
+perfoming the transaction but any other workers will get the full list
+of jobs except the ones that are being processed by other workers.
+
+When the first transaction gets terminated the engine will
+automatically unlock the table and delete the record.
+
+This is great, because you can have any number of workers working
+concurrently without making a mess!
+
+Meaning that a job can never be called in twice by anyone, and that
+you can grow horizontally, the limit is the sky!
+
+What's next?
+
+The job is done here!
+
+Go do something more interesting like clustering! ;)
+
+Seek & destroy, Seek & destroy!
+
+= So what exactly does this gem do?
+
+Gives you an interface to quickly setup a queue of job!
+
 = Installation
 
     kazu@utopia:~$ gem install q4m
 
-= Usage
+= Simple example
 
     require 'rubygems'
     require 'q4m'
 
-    class ShellJob < Q4m::Queue::Job
+    # Specify how shell jobs will run
 
-      # *job* is a mysql record that is retrived from *table_name*
+    class ShellJob < ::Q4m::Queue::Job
+
       def execute job
-        # let the log know if the job was executed correctly!
-        job = job.first
-        return @log.info("Executed: #{job.inspect}") if system job
-
-        # If failed then log the job that failed and rollback the job so
-        # it stays in the queue!
-        @log.error "Aborted job: #{job.inspect}"
-        queue_abort
-      end
-
-      # Database q4m table (name) where jobs are stored
-      def table_name
-        'my_queue'
+        queue_abort unless system(job.first)
       end
 
     end
@@ -37,23 +80,150 @@ Interface to pragmatically setup a queue job for Q4M!
     pass = 'secret'
     database = 'my_db'
 
+    # Instantiate and run a job!
     mysql = Mysql.new host, user, pass, database
     job = ShellJob.new mysql, Logger.new('q4m.log')
 
     job.run
 
+= Quick tip
 
+Note that: The *ShellJob* class will try to connect to the
+'shell_jobs' q4m table by default, if you want to use a different table
+override the *table_name* method and specify one of your liking!
 
-== Note on Patches/Pull Requests
+    class ShellJob < ::Q4m::Queue::Job
 
-* Fork the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
-* Send me a pull request. Bonus points for topic branches.
+     def execute job
+        queue_abort unless system(job.first)
+     end
 
-== Copyright
+      def table_name
+        'my_cool_table'
+      end
 
-Copyright (c) 2010 kazuyoshi tlacaelel. See LICENSE for details.
+    end
+
+= Run on a specific environment like rails?
+
+Planning to have an internal worker
+but dont't want to load the whole env with rake tasks everytime?
+
+Wouln't it be sweet if you can let only-one instance of rails running
+and tell it to pull jobs from the queue whenever it can?
+
+Yes!!
+
+But let's keep it flexibe and run two kinds of jobs, :ruby & :shell
+
+    module Background
+
+      # Specify a shell job. isn't this short & sweet?
+      class ShellJob < ::Q4m::Queue::Job
+
+        def execute job
+          queue_abort unless system(job.first)
+        end
+
+      end
+
+      # Now do the same thing for for ruby
+      # and let's encapsulate the whole thing, and say that all ruby
+      # code that goes into the queue will be methods and they must
+      # always return booleans, if true complete the job successfully!
+      # rollback the transaction otherwise!
+      class RubyJob < ::Q4m::Queue::Job
+
+        def execute job
+          queue_abort unless (eval(job.first) == true)
+        end
+
+      end
+
+      # This hack will mimic a very simple deamon that will run in the
+      # background stay alert for any new jobs that get appended to
+      # the queue
+      class Deamon
+
+        def self.run type = :ruby
+          log   = Rails.root + 'log' + 'q4m.log'
+          path  = Rails.root + 'config' + 'database.yml'
+          conf  = YAML::load_file(path)['queues']
+          mysql = Mysql.new conf['host'], conf['username'], conf['password'], conf['database']
+          job   = if type == :ruby
+            Background::RubyJob.new mysql, Logger.new(log)
+          else
+            Background::ShellJob.new mysql, Logger.new(log)
+          end
+          if File.exist? '/tmp/run_queue.txt'
+            job.run
+            sleep 1
+            print '.'
+            mysql.close
+            run
+          end
+        end
+
+      end
+
+    end
+
+    # Now let's create a model that will help us create jobs for ruby
+    class RubyJob < ActiveRecord::Base
+
+      establish_connection :queues
+
+      def self.append command
+        create! :command => command
+      end
+
+    end
+
+    # And for shell
+    # this can be encapsulated into a parent class but whatever!
+    class ShellJob < ActiveRecord::Base
+
+      establish_connection :queues
+
+      def self.append command
+        create! :command => command
+      end
+
+    end
+
+    # take it one step farther and build a helper, after all we are
+    # going to be working with strings!
+    class String
+
+      def jobify type = :ruby
+        return RubyJob.append self if type == :ruby
+        return ShellJob.append self if type == :shell
+        nil
+      end
+
+    end
+
+= How to actually run it (on rails)!
+
+    # With the code above you can do something like this!
+
+    # Run the deamon in a ruby console!
+    >> Background::Deamon.run
+
+    # Let's create some background jobs on another console..
+
+    # Create a shell job, send it to the queue for later processing!
+    'RAILS_ENV=production rake -T'.jobify :shell
+
+    # Create a ruby job, send it to the queue..
+    # method should return boolean!!
+    'User.create_thumbnails(1)'.jobify
+
+    # Things should start running on the background, look at your logs!
+
+    # To stop the deamon cleanly just delete the file '/tmp/run_queue.txt'
+
+= Extensibility!
+
+Go farther just create a new job class and run whatever you like!
+
