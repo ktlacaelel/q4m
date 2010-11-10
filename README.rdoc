@@ -267,9 +267,11 @@ You might wanna go to:
     http://q4m.github.com/
 
 And see tha latest on how to get it installed.
+
 just thought of posting it, so you'll get an idea.
 
 Yeah, but what's your distro?
+
 it's right here!
 
     deploy@staging> cat /etc/*-release
