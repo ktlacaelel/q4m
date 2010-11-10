@@ -221,7 +221,7 @@ But let's keep it flexibe so let's run two kinds of jobs, :ruby & :shell
 
     $ touch /tmp/run_queue.txt
 
-    # Run the deamon in a ruby console!
+    # Run the deamon in a rails console!
     >> Background::Deamon.run
 
     # Let's create some background jobs on another console..
