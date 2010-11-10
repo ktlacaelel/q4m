@@ -229,8 +229,8 @@ But let's keep it flexibe so let's run two kinds of jobs, :ruby & :shell
     # Create a shell job, send it to the queue for later processing!
     'RAILS_ENV=production rake -T'.jobify :shell
 
-    # Create a ruby job, send it to the queue..
-    # method should return boolean!!
+    # Do the same but with ruby!
+    # NOTE: method inside should return boolean!!
     'User.create_thumbnails(1)'.jobify
 
     # Things should start running on the background, look at your logs!
