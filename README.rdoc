@@ -139,7 +139,7 @@ But let's keep it flexibe so let's run two kinds of jobs, :ruby & :shell
 
       end
 
-      # Now do the same thing for for ruby
+      # Now do the same thing for ruby
       # and let's encapsulate the whole thing, and say that all ruby
       # code that goes into the queue will be methods and they must
       # always return booleans, if true complete the job successfully!
@@ -234,6 +234,15 @@ But let's keep it flexibe so let's run two kinds of jobs, :ruby & :shell
     # Things should start running on the background, look at your logs!
 
     # To stop the deamon cleanly just delete the file '/tmp/run_queue.txt'
+
+= This is great!
+
+Basically any machine running rails with this code, can pull jobs and
+do some hard work for you! even if they are not part of your cluster!
+
+The only requirement is that they can access the mysql-database.
+
+and no, you don't need to install that engine locally!
 
 = Extensibility!
 
