@@ -24,12 +24,22 @@ module Q4m
       # - Executes the latest job.
       # - Restores the queue so other worker can execute a process.
       #
-      def run
+      def run terminate = false
         return unless @has_jobs
         queue_wait
         @log.info("Executing: #{latest_job.inspect}")
         execute latest_job
         queue_end
+        shutdown if terminate
+        nil
+      end
+
+      # Shuts down the worker
+      #
+      def shutdown
+        @mysql.close
+        @log.close
+        nil
       end
 
       private
