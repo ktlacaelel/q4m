@@ -24,13 +24,12 @@ module Q4m
       # - Executes the latest job.
       # - Restores the queue so other worker can execute a process.
       #
-      def run terminate = false
+      def run
         return unless @has_jobs
         queue_wait
         @log.info("Executing: #{latest_job.inspect}")
         execute latest_job
         queue_end
-        shutdown if terminate
         nil
       end
 
